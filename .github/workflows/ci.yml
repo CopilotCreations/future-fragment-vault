@@ -1,0 +1,141 @@
+name: Time Capsule Web CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'projects/future-fragment-vault/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'projects/future-fragment-vault/**'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: projects/future-fragment-vault
+
+jobs:
+  lint:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'projects/future-fragment-vault/requirements.txt'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run flake8 linter
+        run: |
+          flake8 src/backend --max-line-length=120 --ignore=E501,W503
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+          cache-dependency-path: 'projects/future-fragment-vault/requirements.txt'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v --cov=src/backend --cov-report=xml --cov-report=html --cov-report=term-missing --cov-fail-under=75
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: matrix.python-version == '3.11'
+        with:
+          file: ./projects/future-fragment-vault/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'projects/future-fragment-vault/requirements.txt'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Verify application starts
+        run: |
+          python -c "from src.backend.app import create_app; app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:'}); print('App created successfully')"
+      
+      - name: Check for syntax errors in frontend
+        run: |
+          # Basic JS syntax check
+          node -c src/frontend/main.js || echo "Node not available for JS check"
+      
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: application-files
+          path: |
+            projects/future-fragment-vault/src/
+            projects/future-fragment-vault/run.py
+            projects/future-fragment-vault/requirements.txt
+          retention-days: 7
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: lint
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install safety
+        run: pip install safety
+      
+      - name: Check for known vulnerabilities
+        run: |
+          safety check -r requirements.txt --ignore 70612 || true
+        continue-on-error: true

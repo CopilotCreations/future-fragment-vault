@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Capsule Web - Messages from the Future</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">🕰️ Time Capsule Web</h1>
+            <p class="tagline">Lock your memories. Unlock the future.</p>
+            <nav class="nav">
+                <button class="nav-btn active" data-view="collage">Collage</button>
+                <button class="nav-btn" data-view="create">Create Capsule</button>
+                <button class="nav-btn" data-view="upcoming">Upcoming</button>
+            </nav>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat">
+                <span class="stat-value" id="stat-total">0</span>
+                <span class="stat-label">Total Capsules</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="stat-unlocked">0</span>
+                <span class="stat-label">Unlocked</span>
+            </div>
+            <div class="stat">
+                <span class="stat-value" id="stat-locked">0</span>
+                <span class="stat-label">Waiting</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Collage View -->
+            <section id="collage-view" class="view active">
+                <div class="collage-controls">
+                    <input type="text" id="search-input" placeholder="Search capsules..." class="search-input">
+                    <select id="filter-type" class="filter-select">
+                        <option value="">All Types</option>
+                        <option value="text">Text</option>
+                        <option value="drawing">Drawing</option>
+                        <option value="code">Code</option>
+                    </select>
+                    <select id="filter-tag" class="filter-select">
+                        <option value="">All Tags</option>
+                    </select>
+                </div>
+                <div id="collage-container" class="collage-container">
+                    <p class="empty-message">No unlocked capsules yet. Be the first to create one!</p>
+                </div>
+            </section>
+
+            <!-- Create Capsule View -->
+            <section id="create-view" class="view">
+                <div class="create-container">
+                    <h2>Create a Time Capsule</h2>
+                    <form id="capsule-form" class="capsule-form">
+                        <div class="form-group">
+                            <label for="capsule-title">Title</label>
+                            <input type="text" id="capsule-title" name="title" required 
+                                   placeholder="Give your capsule a name...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="content-type">Content Type</label>
+                            <div class="content-type-selector">
+                                <button type="button" class="type-btn active" data-type="text">📝 Text</button>
+                                <button type="button" class="type-btn" data-type="drawing">🎨 Drawing</button>
+                                <button type="button" class="type-btn" data-type="code">💻 Code</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="text-content-group">
+                            <label for="capsule-content">Your Message</label>
+                            <textarea id="capsule-content" name="content" rows="6" 
+                                      placeholder="Write your message to the future..."></textarea>
+                        </div>
+
+                        <div class="form-group hidden" id="drawing-content-group">
+                            <label>Your Drawing</label>
+                            <div class="drawing-container">
+                                <canvas id="drawing-canvas" width="600" height="400"></canvas>
+                                <div class="drawing-tools">
+                                    <input type="color" id="brush-color" value="#000000">
+                                    <input type="range" id="brush-size" min="1" max="20" value="5">
+                                    <button type="button" id="clear-canvas" class="btn-secondary">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group hidden" id="code-content-group">
+                            <label for="code-content">Your Code</label>
+                            <select id="code-language" class="filter-select">
+                                <option value="javascript">JavaScript</option>
+                                <option value="python">Python</option>
+                                <option value="html">HTML</option>
+                                <option value="css">CSS</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <textarea id="code-content" name="code" rows="10" 
+                                      placeholder="// Your code snippet..." class="code-textarea"></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="creator-name">Your Name</label>
+                                <input type="text" id="creator-name" name="creator_name" required 
+                                       placeholder="Anonymous time traveler">
+                            </div>
+                            <div class="form-group">
+                                <label for="unlock-date">Unlock Date</label>
+                                <input type="datetime-local" id="unlock-date" name="unlock_date" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="capsule-tags">Tags (comma separated)</label>
+                            <input type="text" id="capsule-tags" name="tags" 
+                                   placeholder="memory, future, dreams">
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="is-public" name="is_public" checked>
+                                Make this capsule public when unlocked
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-primary">🚀 Launch Capsule</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Upcoming Capsules View -->
+            <section id="upcoming-view" class="view">
+                <h2>⏳ Capsules Waiting to Unlock</h2>
+                <div id="upcoming-container" class="upcoming-container">
+                    <p class="empty-message">No capsules waiting to be unlocked.</p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Capsule Modal -->
+        <div id="capsule-modal" class="modal">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Time Capsule Web &copy; 2024 | Messages locked in time, waiting to be discovered</p>
+        </footer>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>
