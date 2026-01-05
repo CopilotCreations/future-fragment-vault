@@ -12,11 +12,10 @@ db = SQLAlchemy()
 
 
 def init_db(app):
-    """
-    Initialize the database with the Flask application.
-    
+    """Initialize the database with the Flask application.
+
     Args:
-        app: Flask application instance
+        app: Flask application instance to configure with SQLAlchemy.
     """
     db.init_app(app)
     with app.app_context():
@@ -24,7 +23,11 @@ def init_db(app):
 
 
 def generate_uuid():
-    """Generate a unique identifier for capsules."""
+    """Generate a unique identifier for capsules.
+
+    Returns:
+        str: A UUID4 string identifier.
+    """
     return str(uuid.uuid4())
 
 
@@ -66,7 +69,13 @@ class Capsule(db.Model):
     fragment_scale = db.Column(db.Float, default=1.0)
     
     def __init__(self, **kwargs):
-        """Initialize a new capsule with random fragment positioning."""
+        """Initialize a new capsule with random fragment positioning.
+
+        Args:
+            **kwargs: Keyword arguments for capsule attributes. If fragment
+                positioning (fragment_x, fragment_y, fragment_rotation,
+                fragment_scale) is not provided, random values are assigned.
+        """
         super().__init__(**kwargs)
         if 'id' not in kwargs:
             self.id = generate_uuid()
@@ -84,11 +93,10 @@ class Capsule(db.Model):
             self.fragment_scale = random.uniform(0.8, 1.2)
     
     def is_unlocked(self):
-        """
-        Check if the capsule has been unlocked based on current time.
-        
+        """Check if the capsule has been unlocked based on current time.
+
         Returns:
-            bool: True if the unlock date has passed, False otherwise
+            bool: True if the unlock date has passed, False otherwise.
         """
         now = datetime.now(timezone.utc)
         unlock_utc = self.unlock_date
@@ -97,11 +105,10 @@ class Capsule(db.Model):
         return now >= unlock_utc
     
     def time_until_unlock(self):
-        """
-        Calculate the time remaining until the capsule unlocks.
-        
+        """Calculate the time remaining until the capsule unlocks.
+
         Returns:
-            timedelta: Time remaining until unlock, or None if already unlocked
+            timedelta: Time remaining until unlock, or None if already unlocked.
         """
         if self.is_unlocked():
             return None
@@ -112,14 +119,16 @@ class Capsule(db.Model):
         return unlock_utc - now
     
     def to_dict(self, include_content=True):
-        """
-        Convert the capsule to a dictionary representation.
-        
+        """Convert the capsule to a dictionary representation.
+
         Args:
-            include_content: Whether to include the content (only for unlocked capsules)
-            
+            include_content: Whether to include the content field. Content is
+                only included if True and the capsule is unlocked. Defaults to True.
+
         Returns:
-            dict: Dictionary representation of the capsule
+            dict: Dictionary containing capsule attributes including id, title,
+                content_type, creator_name, tags, dates, and fragment positioning.
+                Includes time_remaining if capsule is still locked.
         """
         result = {
             'id': self.id,
@@ -151,4 +160,9 @@ class Capsule(db.Model):
         return result
     
     def __repr__(self):
+        """Return a string representation of the capsule.
+
+        Returns:
+            str: String in format '<Capsule id: title>'.
+        """
         return f'<Capsule {self.id}: {self.title}>'

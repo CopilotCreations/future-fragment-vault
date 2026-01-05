@@ -52,10 +52,24 @@ def create_app(config=None):
     # Serve frontend
     @app.route('/')
     def serve_index():
+        """Serve the main index.html file for the frontend.
+
+        Returns:
+            Response: The index.html file from the static folder.
+        """
         return send_from_directory(app.static_folder, 'index.html')
     
     @app.route('/<path:path>')
     def serve_static(path):
+        """Serve static files or fall back to index.html for SPA routing.
+
+        Args:
+            path: The requested file path relative to the static folder.
+
+        Returns:
+            Response: The requested static file if it exists, otherwise
+                index.html for client-side routing.
+        """
         if os.path.exists(os.path.join(app.static_folder, path)):
             return send_from_directory(app.static_folder, path)
         return send_from_directory(app.static_folder, 'index.html')

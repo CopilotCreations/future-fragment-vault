@@ -12,14 +12,13 @@ api_bp = Blueprint('api', __name__)
 
 
 def parse_datetime(date_string):
-    """
-    Parse a datetime string into a datetime object.
-    
+    """Parse a datetime string into a datetime object.
+
     Args:
-        date_string: ISO format datetime string
-        
+        date_string (str): ISO format datetime string.
+
     Returns:
-        datetime: Parsed datetime object with UTC timezone
+        datetime: Parsed datetime object with UTC timezone, or None if parsing fails.
     """
     if not date_string:
         return None
@@ -47,18 +46,18 @@ def parse_datetime(date_string):
 
 @api_bp.route('/capsules', methods=['GET'])
 def get_capsules():
-    """
-    Get all unlocked public capsules.
-    
+    """Get all unlocked public capsules.
+
     Query Parameters:
-        - tag: Filter by tag
-        - search: Search in title and content
-        - content_type: Filter by content type
-        - limit: Maximum number of results (default: 50)
-        - offset: Number of results to skip (default: 0)
-        
+        tag (str): Filter by tag.
+        search (str): Search in title and content.
+        content_type (str): Filter by content type.
+        limit (int): Maximum number of results (default: 50).
+        offset (int): Number of results to skip (default: 0).
+
     Returns:
-        JSON array of unlocked capsules
+        flask.Response: JSON response containing capsules array, total count,
+            limit, and offset.
     """
     tag = request.args.get('tag')
     search = request.args.get('search')
@@ -101,14 +100,14 @@ def get_capsules():
 
 @api_bp.route('/capsules/unlocked', methods=['GET'])
 def get_unlocked_capsules():
-    """
-    Get only unlocked capsules for the collage display.
-    
+    """Get only unlocked capsules for the collage display.
+
     Query Parameters:
-        - limit: Maximum number of results (default: 30)
-        
+        limit (int): Maximum number of results (default: 30).
+
     Returns:
-        JSON array of unlocked capsules with full content
+        flask.Response: JSON response containing array of unlocked capsules
+            with full content.
     """
     limit = min(int(request.args.get('limit', 30)), 100)
     
@@ -125,14 +124,14 @@ def get_unlocked_capsules():
 
 @api_bp.route('/capsules/locked', methods=['GET'])
 def get_locked_capsules():
-    """
-    Get locked capsules (without content) to show countdown.
-    
+    """Get locked capsules (without content) to show countdown.
+
     Query Parameters:
-        - limit: Maximum number of results (default: 10)
-        
+        limit (int): Maximum number of results (default: 10).
+
     Returns:
-        JSON array of locked capsules without content
+        flask.Response: JSON response containing array of locked capsules
+            without content.
     """
     limit = min(int(request.args.get('limit', 10)), 50)
     
@@ -149,14 +148,14 @@ def get_locked_capsules():
 
 @api_bp.route('/capsules/<capsule_id>', methods=['GET'])
 def get_capsule(capsule_id):
-    """
-    Get a specific capsule by ID.
-    
+    """Get a specific capsule by ID.
+
     Args:
-        capsule_id: The unique identifier of the capsule
-        
+        capsule_id (str): The unique identifier of the capsule.
+
     Returns:
-        JSON object of the capsule (content only if unlocked)
+        flask.Response: JSON response containing the capsule object
+            (content included only if unlocked), or error response.
     """
     capsule = Capsule.query.get(capsule_id)
     
@@ -171,21 +170,22 @@ def get_capsule(capsule_id):
 
 @api_bp.route('/capsules', methods=['POST'])
 def create_capsule():
-    """
-    Create a new time capsule.
-    
+    """Create a new time capsule.
+
     Request Body:
-        - title: Title of the capsule (required)
-        - content: The message, drawing, or code (required)
-        - content_type: Type of content - 'text', 'drawing', 'code' (default: 'text')
-        - creator_name: Name of the creator (required)
-        - creator_email: Email of the creator (optional)
-        - unlock_date: ISO format date when capsule unlocks (required)
-        - tags: Array of tags (optional)
-        - is_public: Whether capsule is public (default: true)
-        
+        title (str): Title of the capsule (required).
+        content (str): The message, drawing, or code (required).
+        content_type (str): Type of content - 'text', 'drawing', 'code'
+            (default: 'text').
+        creator_name (str): Name of the creator (required).
+        creator_email (str): Email of the creator (optional).
+        unlock_date (str): ISO format date when capsule unlocks (required).
+        tags (list[str]): Array of tags (optional).
+        is_public (bool): Whether capsule is public (default: true).
+
     Returns:
-        JSON object of the created capsule
+        flask.Response: JSON response containing success message and created
+            capsule object, or error response.
     """
     data = request.get_json()
     
@@ -236,14 +236,14 @@ def create_capsule():
 
 @api_bp.route('/capsules/<capsule_id>', methods=['DELETE'])
 def delete_capsule(capsule_id):
-    """
-    Delete a capsule by ID.
-    
+    """Delete a capsule by ID.
+
     Args:
-        capsule_id: The unique identifier of the capsule
-        
+        capsule_id (str): The unique identifier of the capsule.
+
     Returns:
-        Success message or error
+        flask.Response: JSON response containing success message,
+            or error response if capsule not found.
     """
     capsule = Capsule.query.get(capsule_id)
     
@@ -258,20 +258,20 @@ def delete_capsule(capsule_id):
 
 @api_bp.route('/capsules/<capsule_id>/position', methods=['PATCH'])
 def update_capsule_position(capsule_id):
-    """
-    Update the fragment position of a capsule for the collage display.
-    
+    """Update the fragment position of a capsule for the collage display.
+
     Args:
-        capsule_id: The unique identifier of the capsule
-        
+        capsule_id (str): The unique identifier of the capsule.
+
     Request Body:
-        - fragment_x: X position (0-100)
-        - fragment_y: Y position (0-100)
-        - fragment_rotation: Rotation angle (-30 to 30)
-        - fragment_scale: Scale factor (0.5 to 1.5)
-        
+        fragment_x (float): X position (0-100).
+        fragment_y (float): Y position (0-100).
+        fragment_rotation (float): Rotation angle (-30 to 30).
+        fragment_scale (float): Scale factor (0.5 to 1.5).
+
     Returns:
-        Updated capsule data
+        flask.Response: JSON response containing updated capsule data,
+            or error response if capsule not found.
     """
     capsule = Capsule.query.get(capsule_id)
     
@@ -296,11 +296,10 @@ def update_capsule_position(capsule_id):
 
 @api_bp.route('/tags', methods=['GET'])
 def get_tags():
-    """
-    Get all unique tags from capsules.
-    
+    """Get all unique tags from capsules.
+
     Returns:
-        JSON array of unique tags
+        flask.Response: JSON response containing sorted array of unique tags.
     """
     capsules = Capsule.query.filter(
         Capsule.is_public == True,
@@ -321,11 +320,11 @@ def get_tags():
 
 @api_bp.route('/stats', methods=['GET'])
 def get_stats():
-    """
-    Get statistics about the capsules.
-    
+    """Get statistics about the capsules.
+
     Returns:
-        JSON object with capsule statistics
+        flask.Response: JSON response containing total, unlocked, and locked
+            capsule counts.
     """
     now = datetime.now(timezone.utc)
     

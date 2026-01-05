@@ -20,7 +20,19 @@ load_dotenv()
 
 
 def main():
-    """Main entry point for the application."""
+    """Main entry point for the application.
+
+    Initializes and runs the Flask development server with configuration
+    from environment variables.
+
+    Environment Variables:
+        HOST: Server host address (default: '0.0.0.0').
+        PORT: Server port number (default: 5000).
+        FLASK_DEBUG: Enable debug mode when set to '1' (default: '0').
+
+    Returns:
+        None
+    """
     app = create_app()
     
     host = os.getenv('HOST', '0.0.0.0')
